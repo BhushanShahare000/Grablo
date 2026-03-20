@@ -18,8 +18,16 @@ export default function Dashboard() {
     useEffect(() => {
         if (mounted && status === "unauthenticated") {
             router.push("/login");
+        } else if (mounted && status === "authenticated") {
+            if (session.user.role === "ADMIN") {
+                router.push("/dashboard/admin");
+            } else if (session.user.role === "VENDOR") {
+                router.push("/dashboard/vendor");
+            } else if (session.user.role === "CUSTOMER") {
+                router.push("/");
+            }
         }
-    }, [status, router, mounted]);
+    }, [status, router, mounted, session]);
 
     if (!mounted || status === "loading") {
         return (

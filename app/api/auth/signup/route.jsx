@@ -20,14 +20,29 @@ export async function POST(req) {
 
         const hashed = await bcrypt.hash(password, 10);
 
-        const user = await prisma.user.create({
-            data: {
-                name: name || null,
-                email,
-                password: hashed,
-                role: role || 'CUSTOMER',
-            },
-            select: { id: true, email: true, name: true, role: true },
+        const user = await prisma.$transaction(async (tx) => {
+            const newUser = await tx.user.create({
+                data: {
+                    name: name || null,
+                    email,
+                    password: hashed,
+                    role: role || 'CUSTOMER',
+                },
+            });
+
+            if (role === 'VENDOR') {
+                await tx.shop.create({
+                    data: {
+                        name: body.shopName || `${name}'s stall`,
+                        address: body.shopAddress || 'Address not provided',
+                        latitude: body.latitude || 20.5937,
+                        longitude: body.longitude || 78.9629,
+                        ownerId: newUser.id,
+                    }
+                });
+            }
+
+            return newUser;
         });
 
         return NextResponse.json({ user }, { status: 201 });

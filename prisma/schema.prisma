@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
-  engineType = "binary"
+  engineType = "library"
 }
 
 datasource db {
@@ -14,6 +14,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(CUSTOMER)
+  shop      Shop?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -22,4 +23,33 @@ enum Role {
   CUSTOMER
   VENDOR
   ADMIN
+}
+
+model Shop {
+  id              Int        @id @default(autoincrement())
+  name            String
+  description     String?
+  address         String
+  latitude        Float
+  longitude       Float
+  deliveryEnabled Boolean    @default(true)
+  deliveryRange   Float      @default(5.0) // distance in km
+  ownerId         Int        @unique
+  owner           User       @relation(fields: [ownerId], references: [id])
+  menuItems       MenuItem[]
+  imageUrl        String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MenuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  shopId      Int
+  shop        Shop     @relation(fields: [shopId], references: [id])
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
